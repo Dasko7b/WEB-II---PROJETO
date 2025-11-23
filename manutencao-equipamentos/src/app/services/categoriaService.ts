@@ -2,15 +2,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export interface CategoriaResponse {
-    id: number;
-    nomeCategoria: string;
-    ativo: boolean;
+export class CategoriaResponse {
+    id!: number;
+    nomeCategoria!: string;
+    ativo!: boolean;
 }
 
-export interface CategoriaRequest {
-    nomeCategoria: string;
-    ativo: boolean;
+export class CategoriaRequest {
+    nomeCategoria!: string;
+    ativo!: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -20,7 +20,7 @@
         <select id="categoriaEquipamento" formControlName="categoriaEquipamento" class="form-select">
           <option value="" disabled selected>Selecione a categoria</option>
           @for (categoria of categorias; track categoria) {
-          <option [value]="categoria">{{ categoria }}</option>
+          <option [value]="categoria">{{ categoria.nomeCategoria }}</option>
           }
         </select>
         @if (solicitacaoForm.get('categoriaEquipamento')?.invalid && solicitacaoForm.get('categoriaEquipamento')?.touched) {

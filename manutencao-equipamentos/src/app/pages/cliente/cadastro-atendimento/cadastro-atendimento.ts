@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { NavComponent } from '../../../shared/Nav/nav';
+import { CategoriaResponse, CategoriaService } from '../../../services/categoriaService';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-cadastro-atendimento',
@@ -14,12 +16,14 @@ export class CadastroAtendimento {
 
   // Declara a propriedade para o formulário reativo.
   solicitacaoForm!: FormGroup;
-  
+
+  categoriaService = inject(CategoriaService);
   // Dados de teste para as categorias de equipamentos
-  categorias: string[] = ['Notebook', 'Desktop', 'Impressora', 'Mouse', 'Teclado'];
+  categorias: CategoriaResponse[] = [];
 
   // O construtor injeta o FormBuilder para criar o formulário
   constructor(private fb: FormBuilder) {
+    this.getAll();
     this.solicitacaoForm = this.fb.group({
       descricaoEquipamento: ['', [Validators.required, Validators.maxLength(30)]],
       categoriaEquipamento: ['', Validators.required],
@@ -27,6 +31,16 @@ export class CadastroAtendimento {
     });
   }
 
+  getAll(){
+    this.categoriaService.getAll().subscribe({
+      next: categorias =>{
+        this.categorias = categorias;
+      },
+      error: (err: HttpErrorResponse) =>{
+        console.log(err);
+      }
+    });
+  }
   // Função para "enviar" os dados 
   enviarSolicitacao(): void {
     if (this.solicitacaoForm.valid) {
