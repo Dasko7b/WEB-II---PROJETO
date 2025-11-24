@@ -2,35 +2,11 @@ import { Component, Output, EventEmitter } from '@angular/core';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Input } from '@angular/core';
-
-type Estado = 'ABERTA' | 'ORÇADA' | 'APROVADA' | 'REJEITADA' | 'ARRUMADA' | 'PAGA' | 'FINALIZADA';
-
-interface Cliente {
-  id: string;
-  nome: string;
-  email: string;
-  telefone: string;
-}
-
-interface Solicitacao {
-  id: string;
-  equipamento: string;
-  categoria: string;
-  defeito: string;
-  criadoEm: string; // ISO ou dd/MM/yyyy HH:mm
-  estado: Estado;
-}
-
-
-function getById(list: any[], id: string) {
-  for (let i = 0; i < list.length; i++) {
-    if (list[i].id === id) {
-      return i;
-    }
-  }
-  return null;
-}
+import { OrcamentoService } from '../../../services/orcamentoService';
+import { OrcamentoRequest } from '../../../models/orcamentoRequestModel';
+import { solicitacaoModel } from '../../../models/solicitacaoModel';
+import { SolicitacaoService } from '../../../services/solicitacao';
+import { LoginService } from '../../../services/loginService';
 
 @Component({
   selector: 'app-efetuar-orcamento',
@@ -40,112 +16,86 @@ function getById(list: any[], id: string) {
   styleUrls: ['./efetuar-orcamento.css'],
 })
 export class EfetuarOrcamento {
-  @Input() id: string = "";
+  
+  solicitacaoId: number | null = null;
+  solicitacao: solicitacaoModel | null = null;
+  valorOrcamento: number | null = null; 
+  descOrcamento: string = ''; 
+  isLoading: boolean = true;
 
-  dados: any;
+  funcionarioId: number | null = null; // agora inicializado
 
-  @Output() close = new EventEmitter<void>();
-
-  cancelar() {
-    this.close.emit();
-  }
-
-  // MOCKS (trocar por dados da API quando integrar backend)
-  clientes: Cliente[] = [
-    {
-      id: '1',
-      nome: 'Maria Fernanda',
-      email: 'fulano@exemplo.com',
-      telefone: '(41) 99999-9999',
-    },
-    {
-      id: '2',
-      nome: 'Lucas',
-      email: 'fulano@exemplo.com',
-      telefone: '(41) 99999-9999',
-    }
-  ];
-
-  solicitacoes: Solicitacao[] = [
-    {
-      id: '1',
-      equipamento: 'Notebook Lenovo Ideapad 3',
-      categoria: 'Notebook',
-      defeito: 'Não liga',
-      criadoEm: '25/08/2025 10:00',
-      estado: 'ABERTA'
-    },
-    {
-      id: '2',
-      equipamento: 'Notebook Lenovo Ideapad 3',
-      categoria: 'Notebook',
-      defeito: 'Não liga',
-      criadoEm: '25/08/2025 10:00',
-      estado: 'ABERTA'
-    }
-  ];
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private solicitacaoService: SolicitacaoService,
+    private orcamentoService: OrcamentoService,
+    private loginService: LoginService
+  ) {}
 
   ngOnInit(): void {
-    if (!this.id) {
-      console.error("ID não foi fornecido para o componente EfetuarOrcamento.");
+    this.funcionarioId = this.loginService.getFuncionarioId();
+
+    if (!this.funcionarioId) {
+      alert('Erro: funcionário não está logado.');
+      this.router.navigate(['/login']);
       return;
     }
 
-    const cliente_index = getById(this.clientes, this.id);
-    const solicitacao_index = getById(this.solicitacoes, this.id); // <-- FIX: Search the correct array
-
-    // FIX: Check for null explicitly. An index of 0 is valid but falsy.
-    if (cliente_index !== null && solicitacao_index !== null) {
-      // FIX: Use 'this' to assign to class properties
-      this.dados = {
-        "cliente": this.clientes[cliente_index],
-        "solicitacao": this.solicitacoes[solicitacao_index]
-      };
-    } else {
-      console.error(`Não foi possível encontrar cliente ou solicitação para o ID: ${this.id}`);
-    }
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) {
+        this.solicitacaoId = +id;
+        this.carregarDadosSolicitacao(this.solicitacaoId);
+      }
+    });
   }
 
-  // entrada do orçamento
-  valorOrcamento: number | null = null;
-  observacao: string = '';
-
-  // contexto do “funcionário logado” (mock)
-  funcionarioLogado = 'funcionario.demo@empresa.com';
-
-  constructor(private route: ActivatedRoute, private router: Router) {
-    // pega o :id da rota e aplica nos mocks (em produção, buscar na API por id)
-    //this.id = this.route.snapshot.paramMap.get('id');
-
+  carregarDadosSolicitacao(id: number): void {
+    this.solicitacaoService.findById(id).subscribe({
+      next: (data) => {
+        this.solicitacao = data;
+        this.isLoading = false;
+        
+        if (data.estadoChamado !== 'AGUARDANDO_ORCAMENTO') {
+          alert('Esta solicitação não está aguardando orçamento.');
+        }
+      },
+      error: (error) => {
+        console.error('Erro ao carregar solicitação', error);
+        alert('Não foi possível carregar os dados da solicitação.');
+        this.isLoading = false;
+      }
+    });
   }
 
-  salvarOrcamento() {
-    if (this.valorOrcamento == null || this.valorOrcamento <= 0) {
-      alert('Informe um valor de orçamento válido.');
+  efetuarOrcamento(): void {
+    if (!this.solicitacaoId || this.valorOrcamento === null || this.valorOrcamento <= 0) {
+      alert('Por favor, verifique o valor do orçamento.');
       return;
     }
 
-    const agora = new Date();
-    const dataHora =
-      agora.toLocaleDateString('pt-BR') +
-      ' ' +
-      agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const orcamentoData: OrcamentoRequest = {
+      solicitacaoId: this.solicitacaoId,
+      valorOrcamento: this.valorOrcamento,
+      usuarioId: this.solicitacao?.usuario.id || 0,
+      funcionarioId: this.funcionarioId!,
+      desc_Solicitacao: this.descOrcamento
+    };
 
-    //Em algum momento, aqui deve salvar o orçamento na API
+    this.orcamentoService.criarOrcamento(orcamentoData).subscribe({
+      next: (response) => {
+        alert(`Orçamento de R$ ${response.valorOrcamento} efetuado com sucesso!`);
+        this.router.navigate(['/funcionario/painel']);
+      },
+      error: (err) => {
+        console.error('Erro ao efetuar orçamento:', err);
+        alert('Erro ao registrar o orçamento.');
+      }
+    });
+  }
 
-    //this.solicitacao.estado = 'ORÇADA';
-
-    //alert(
-    //  `Orçamento registrado!\n\n` +
-    //  `Solicitação: ${this.solicitacao.id}\n` +
-    //  `Cliente: ${this.cliente.nome}\n` +
-    //  `Valor: R$ ${this.valorOrcamento.toFixed(2)}\n` +
-    //  `Funcionário: ${this.funcionarioLogado}\n` +
-    //  `Data/Hora: ${dataHora}\n\n` +
-    //  `Estado atualizado para: ${this.solicitacao.estado}`
-    //);
-
-    // navegação simples: voltar ao painel do funcionário
-    this.router.navigateByUrl('/func');
+  cancelar(): void {
+    this.router.navigate(['/funcionario/painel']);
   }
 }

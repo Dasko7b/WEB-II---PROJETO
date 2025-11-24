@@ -11,15 +11,15 @@
                 <section class="request-details">
                     <h2>Dados do Chamado</h2>
                     <ul>
-                        <li><strong>Nº do Chamado:</strong> <span>#TI-0925-334</span></li>
-                        <li><strong>Serviço Solicitado:</strong> <span>Remoção de Vírus e Otimização de Sistema</span></li>
-                        <li><strong>Data da Abertura:</strong> <span>21/09/2025</span></li>
-                        <li><strong>Cliente:</strong> <span>Escritório de Contabilidade Central</span></li>
-                        <li><strong>Técnico Responsável:</strong> <span>Ana Oliveira</span></li>
-                        <li><strong>Empresa Prestadora:</strong> <span>Soluções Tech-IT Ltda.</span></li>
+                        <li><strong>Nº do Chamado:</strong> <span>{{ orcamentoSelecionado?.solicitacaoId }}</span></li>
+                        <li><strong>Serviço Solicitado:</strong> <span>{{ orcamentoSelecionado?.descricaoServico }}</span></li>
+                        <li><strong>Data da Abertura:</strong> <span>{{ orcamentoSelecionado?.dataAbertura }}</span></li>
+                        <li><strong>Cliente:</strong> <span>{{ orcamentoSelecionado?.clienteNome }}</span></li>
+                        <li><strong>Técnico Responsável:</strong> <span>{{ orcamentoSelecionado?.tecnicoNome }}</span></li>
+                        <li><strong>Empresa Prestadora:</strong> <span>{{ orcamentoSelecionado?.empresa }}</span></li>
                         <li>
                             <strong>Diagnóstico do Problema:</strong>
-                            <p>O computador principal da recepção está extremamente lento, apresentando pop-ups inesperados e travando ao abrir planilhas. Análise preliminar indica infecção por malware e excesso de arquivos temporários.</p>
+                            <p>{{ orcamentoSelecionado?.diagnostico }}</p>
                         </li>
                     </ul>
                 </section>
@@ -30,34 +30,30 @@
                     <h2>Serviços Inclusos</h2>
                     <table class="services-table">
                         <tbody>
-                            <tr>
-                                <td>Diagnóstico completo de hardware e software</td>
-                                <td class="price-col">R$ 80,00</td>
+                            <tr *ngFor="let item of orcamentoSelecionado?.itens">
+                                <td>{{ item.descricao }}</td>
+                                <td class="price-col">
+                                    {{ item.valor | currency:'BRL':'symbol':'1.2-2':'pt' }}
+                                </td>
                             </tr>
                             <tr>
-                                <td>Remoção de Malware, Spyware e Adware</td>
-                                <td class="price-col">R$ 120,00</td>
-                            </tr>
-                            <tr>
-                                <td>Otimização de inicialização do Windows</td>
-                                <td class="price-col">R$ 50,00</td>
-                            </tr>
-                            <tr>
-                                <td>Limpeza de registros e arquivos temporários</td>
-                                <td class="price-col">R$ 30,00</td>
-                            </tr>
-                            <tr>
-                                <td>Total:</td>
-                                <td class="price-col">R$ 280,00</td>
+                                <td><strong>Total:</strong></td>
+                                <td class="price-col">
+                                    {{ orcamentoSelecionado?.valorTotal | currency:'BRL':'symbol':'1.2-2':'pt' }}
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </section>
             </div>
+
             <div class="budget-wrapper">
                 <section class="budget-highlight">
                     <h3>PROPOSTA TÉCNICA E VALOR TOTAL</h3>
-                    <p class="price">R$ 280,00</p>
+
+                    <p class="price">
+                        {{ orcamentoSelecionado?.valorTotal | currency:'BRL':'symbol':'1.2-2':'pt' }}
+                    </p>
                 </section>
             </div>
         </div>
@@ -71,6 +67,7 @@
     </footer>
 </div>
 
+<!-- Modal Aprovação -->
 <div class="modal-overlay" *ngIf="isModalVisible">
     <div class="modal-content">
         <div class="modal-header">
@@ -85,6 +82,7 @@
     </div>
 </div>
 
+<!-- Modal Rejeição -->
 <div class="modal-overlay" *ngIf="isRejectionModalVisible">
     <div class="modal-content">
         <div class="modal-header">
@@ -92,20 +90,29 @@
         </div>
         <div class="modal-body">
             <p>Por favor, descreva o motivo para rejeitar esta proposta de serviço.</p>
+
             <textarea 
-                class="rejection-reason-textarea" 
-                rows="4" 
-                placeholder="Ex: O valor está acima do esperado, preciso de mais detalhes sobre o serviço X..."
-                [(ngModel)]="rejectionReason"
-            ></textarea>
+                class="rejection-reason-textarea"
+                rows="4"
+                placeholder="Explique o motivo da rejeição..."
+                [(ngModel)]="rejectionReason">
+            </textarea>
         </div>
+
         <div class="modal-footer-rejection">
             <button class="btn btn-modal-cancel" (click)="closeRejectionModal()">Cancelar</button>
-            <button class="btn btn-modal-reject" (click)="confirmRejection()" [disabled]="!rejectionReason.trim()">Confirmar Rejeição</button>
+            <button 
+                class="btn btn-modal-reject" 
+                (click)="confirmRejection()" 
+                [disabled]="!rejectionReason.trim()"
+            >
+                Confirmar Rejeição
+            </button>
         </div>
     </div>
 </div>
 
+<!-- Modal Confirmação Final -->
 <div class="modal-overlay" *ngIf="isRejectionConfirmationVisible">
     <div class="modal-content">
         <div class="modal-header">

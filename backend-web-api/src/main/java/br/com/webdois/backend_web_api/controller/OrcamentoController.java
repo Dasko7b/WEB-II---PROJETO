@@ -38,15 +38,16 @@ public class OrcamentoController {
     }
 
     @PostMapping("/aprovar/{id_orcamento}")
-    public OrcamentoResponseDTO aprovar(@PathVariable Long id_orcamento) {
-        Orcamento orcamento = orcamentoService.aprovarOrcamento(id_orcamento);
-        return orcamentoService.toDTO(orcamento);
+    public ResponseEntity<OrcamentoResponseDTO> aprovarOrcamento(@PathVariable Long id_orcamento) {
+        OrcamentoResponseDTO response = orcamentoService.aprovarOrcamento(id_orcamento);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/rejeitar/{id_orcamento}")
-    public OrcamentoResponseDTO rejeitar(@PathVariable Long id_orcamento) {
-        Orcamento orcamento = orcamentoService.rejeitarOrcamento(id_orcamento);
-        return orcamentoService.toDTO(orcamento);
+    
+    public ResponseEntity<OrcamentoResponseDTO> rejeitarOrcamento(@PathVariable Long id_orcamento) {
+    OrcamentoResponseDTO response = orcamentoService.rejeitarOrcamento(id_orcamento);
+    return ResponseEntity.ok(response);
     }
 
     @GetMapping("/solicitacao/{solicitacaoId}")

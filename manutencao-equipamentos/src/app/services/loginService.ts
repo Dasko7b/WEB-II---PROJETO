@@ -84,6 +84,11 @@ export class LoginService {
   private storeAuthData(usuario: UsuarioLogado): void {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(usuario));
   }
+
+  getFuncionarioId(): number | null {
+    const user = this.getStoredUser();
+    return user ? user.id : null;
+  }
   
   private redirecionarAposLogin(role: string): void {
     if (role === 'FUNCIONARIO' || role === 'ADMIN') {

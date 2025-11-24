@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NavComponent } from '../../../shared/Nav/nav';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { OrcamentoService } from '../../../services/orcamentoService';
 
 @Component({
   selector: 'app-servicos',
@@ -12,66 +13,96 @@ import { Router } from '@angular/router';
   styleUrl: './servicos.css'
 })
 export class Servicos {
-  // --- Controle de estado para os modais ---
+
+  orcamentoSelecionado: any; 
+
+  // Modals
   isModalVisible: boolean = false;
   isRejectionModalVisible: boolean = false;
   isRejectionConfirmationVisible: boolean = false;
 
-  // --- Dados do componente ---
+  // Dados vindos da API
+  solicitacaoId!: number;
+  orcamento!: any;
+
+  // Campos de exibição
   rejectionReason: string = '';
   approvalMessage: string = '';
-  totalValue: string = 'R$ 280,00'; // Em um caso real, este valor viria de uma API.
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private orcamentoService: OrcamentoService
+  ) {}
 
-  // ===================================================
-  // ========= FLUXO DE APROVAÇÃO DE SERVIÇO ===========
-  // ===================================================
+  ngOnInit(): void {
+    this.solicitacaoId = Number(this.route.snapshot.paramMap.get("id"));
+    this.carregarOrcamento();
+  }
 
+  // ---------------------------------------------------
+  // 🟦 CARREGAR ÚLTIMO ORÇAMENTO DA SOLICITAÇÃO
+  // ---------------------------------------------------
+  carregarOrcamento() {
+    this.orcamentoService.listarPorSolicitacao(this.solicitacaoId).subscribe({
+      next: (lista) => {
+        if (lista.length === 0) {
+          alert("Nenhum orçamento foi registrado para esta solicitação.");
+          return;
+        }
+
+        this.orcamento = lista[lista.length - 1]; // pega o último orçamento
+
+        this.approvalMessage = `Serviço aprovado por R$ ${this.orcamento.valorOrcamento.toFixed(2)}`;
+      },
+      error: (err) => {
+        console.error("Erro ao carregar orçamentos:", err);
+        alert("Erro ao carregar orçamento.");
+      }
+    });
+  }
+
+  // ---------------------------------------------------
+  // 🟩 APROVAÇÃO
+  // ---------------------------------------------------
   openApprovalModal(): void {
-    this.approvalMessage = `Serviço Aprovado no Valor ${this.totalValue}`;
     this.isModalVisible = true;
   }
 
-  /** Esconde o modal e redireciona o usuário. */
   confirmApproval(): void {
-    this.isModalVisible = false;
-    // TODO: Adicionar chamada à API para atualizar o status para "APROVADA".
-    console.log('Serviço aprovado! Redirecionando...');
-    this.router.navigate(['/../']);
+    this.orcamentoService.aprovarOrcamento(this.orcamento.id).subscribe({
+      next: () => {
+        alert("Orçamento aprovado!");
+        this.router.navigate(['/cliente']);
+      },
+      error: (err) => console.error("Erro:", err)
+    });
   }
 
-  // ===================================================
-  // ========= FLUXO DE REJEIÇÃO DE SERVIÇO ============
-  // ===================================================
-
+  // ---------------------------------------------------
+  // 🟥 REJEIÇÃO
+  // ---------------------------------------------------
   openRejectionModal(): void {
-    // Limpa o motivo anterior para garantir que o campo comece vazio.
     this.rejectionReason = '';
     this.isRejectionModalVisible = true;
   }
 
-  /** Permite ao usuário cancelar a ação de rejeitar. */
   closeRejectionModal(): void {
     this.isRejectionModalVisible = false;
   }
 
-  /** Confirma o motivo, fecha o modal atual e abre o de confirmação. */
   confirmRejection(): void {
-    if (!this.rejectionReason.trim()) {
-      return;
-    }
-    // TODO: Adicionar chamada à API para salvar o motivo da rejeição e atualizar o status.
-    console.log('Serviço Rejeitado. Motivo:', this.rejectionReason);
-
-    this.isRejectionModalVisible = false;
-    this.isRejectionConfirmationVisible = true;
+    this.orcamentoService.rejeitarOrcamento(this.orcamento.id).subscribe({
+      next: () => {
+        this.isRejectionModalVisible = false;
+        this.isRejectionConfirmationVisible = true;
+      },
+      error: (err) => console.error("Erro:", err)
+    });
   }
 
-  /** Fecha o modal de confirmação final e redireciona o usuário. */
   closeRejectionConfirmation(): void {
     this.isRejectionConfirmationVisible = false;
-    console.log('Rejeição confirmada! Redirecionando...');
-    this.router.navigate(['/../']);
+    this.router.navigate(['/cliente']);
   }
 }

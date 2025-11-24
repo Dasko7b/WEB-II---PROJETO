@@ -47,7 +47,7 @@ public class OrcamentoService {
                 orcamento.setDesc_Solicitacao(dto.getDesc_Solicitacao());
                 orcamento.setValorOrcamento(dto.getValorOrcamento());
 
-                orcamento.setEstadoOrcamento(EstadoOrcamento.INICIADO);
+                orcamento.setEstadoOrcamento(EstadoOrcamento.PENDENTE);
 
                 solicitacao.setEstadoChamado(EstadoChamado.ORCADO);
                 solicitacaoRepository.save(solicitacao);
@@ -84,29 +84,38 @@ public class OrcamentoService {
                                 .collect(Collectors.toList());
         }
 
-        public Orcamento aprovarOrcamento(Long id) {
+        public OrcamentoResponseDTO aprovarOrcamento(Long id) {
                 Orcamento orcamento = orcamentoRepository.findById(id)
                                 .orElseThrow(() -> new RuntimeException("Orçamento não encontrado"));
 
                 orcamento.setEstadoOrcamento(EstadoOrcamento.APROVADO);
+                Orcamento orcamentoSalvo = orcamentoRepository.save(orcamento);
 
-                return orcamentoRepository.save(orcamento);
+                // Atualiza o estado da Solicitação 
+                Solicitacao solicitacao = orcamentoSalvo.getSolicitacao();
+                solicitacao.setEstadoChamado(EstadoChamado.EM_ANDAMENTO); 
+                solicitacaoRepository.save(solicitacao);
+
+                return toDTO(orcamentoSalvo);
         }
 
-        public Orcamento rejeitarOrcamento(Long id) {
+        public OrcamentoResponseDTO rejeitarOrcamento(Long id) {
                 Orcamento orcamento = orcamentoRepository.findById(id)
                                 .orElseThrow(() -> new RuntimeException("Orçamento não encontrado"));
 
-                orcamento.setEstadoOrcamento(EstadoOrcamento.REPROVADO);
+                orcamento.setEstadoOrcamento(EstadoOrcamento.REJEITADO); 
+                Orcamento orcamentoSalvo = orcamentoRepository.save(orcamento);
 
-                return orcamentoRepository.save(orcamento);
+                Solicitacao solicitacao = orcamentoSalvo.getSolicitacao();
+                solicitacao.setEstadoChamado(EstadoChamado.REJEITADA); 
+                solicitacaoRepository.save(solicitacao);
+
+               return toDTO(orcamentoSalvo);
         }
 
         public List<OrcamentoResponseDTO> listarOrcamentosPorSolicitacao(Long solicitacaoId) {
                 List<Orcamento> orcamentos = orcamentoRepository.findBySolicitacaoId(solicitacaoId);
 
-                return orcamentos.stream()
-                                .map(this::toDTO)
-                                .collect(Collectors.toList());
+                return orcamentos.stream().map(this::toDTO).collect(Collectors.toList());
         }
 }

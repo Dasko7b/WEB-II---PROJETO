@@ -35,8 +35,6 @@ public class Manuntencao {
         this.idf_solicitacao = idf_solicitacao;
     }
 
-    
-
 
     public Long getId_manutencao() {
         return this.id_manutencao;

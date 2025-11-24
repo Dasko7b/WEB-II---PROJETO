@@ -1,42 +1,53 @@
-<div class="container">
+<div class="container" *ngIf="solicitacao">
   <div class="content">
-    <h1 class="title title-second">Efetuar Orçamento</h1>
+    <h1 class="title title-second">Efetuar Orçamento - Solicitação #{{ solicitacaoId }}</h1>
 
     <div class="grid">
+
+      <!-- DADOS DA SOLICITAÇÃO -->
       <div class="card bg">
         <h2 class="subtitle">Dados da Solicitação</h2>
-        <div class="info-row"><strong>Codigo:</strong><br>{{ dados.solicitacao.id }}</div>
-        <div class="info-row"><strong>Equipamento:</strong><br>{{ dados.solicitacao.equipamento }}</div>
-        <div class="info-row"><strong>Categoria:</strong><br>{{ dados.solicitacao.categoria }}</div>
-        <div class="info-row"><strong>Defeito:</strong><br>{{ dados.solicitacao.defeito }}</div>
-        <div class="info-row"><strong>Criado em:</strong><br>{{ dados.solicitacao.criadoEm }}</div>
-        <div class="info-row"><strong>Estado atual:</strong>{{ dados.solicitacao.estado }}</div>
+        <div class="info-row"><strong>Código:</strong><br>{{ solicitacao.id }}</div>
+        <div class="info-row"><strong>Equipamento:</strong><br>{{ solicitacao.descricao }}</div>
+        <div class="info-row"><strong>Categoria:</strong><br>{{ solicitacao.idCategoria }}</div>
+        <div class="info-row"><strong>Defeito:</strong><br>{{ solicitacao.descricaoEquipamentos }}</div>
+        <div class="info-row"><strong>Criado em:</strong><br>{{ solicitacao.dataHora }}</div>
+        <div class="info-row"><strong>Estado atual:</strong><br>{{ solicitacao.estadoChamado }}</div>
       </div>
 
       <div class="card bg">
         <h2 class="subtitle">Dados do Cliente</h2>
-        <div class="info-row"><strong>Nome:</strong><br>{{ dados.cliente.nome }}</div>
-        <div class="info-row"><strong>Codigo:</strong><br>{{ dados.cliente.id }}</div>
-        <div class="info-row"><strong>Email:</strong><br>{{ dados.cliente.email }}</div>
-        <div class="info-row"><strong>Telefone:</strong><br>{{ dados.cliente.telefone }}</div>
+        <div class="info-row"><strong>Nome:</strong><br>{{ solicitacao.usuario.nome }}</div>
+        <div class="info-row"><strong>Código:</strong><br>{{ solicitacao.usuario.id }}</div>
+        <div class="info-row"><strong>Email:</strong><br>{{ solicitacao.usuario.email }}</div>
       </div>
+
     </div>
 
-    <form class="form" (ngSubmit)="salvarOrcamento()">
+    <!-- FORM -->
+    <form class="form" (ngSubmit)="efetuarOrcamento()">
+
       <div class="form-input-group">
         <label>Valor do Orçamento (R$)</label>
-        <input type="number" step="0.01" min="0.01" [(ngModel)]="valorOrcamento" name="valorOrcamento" required />
+        <input 
+          type="number" 
+          step="0.01" 
+          min="0.01" 
+          [(ngModel)]="valorOrcamento" 
+          name="valorOrcamento" 
+          required />
       </div>
 
       <div class="form-input-group">
         <label>Observação (opcional)</label>
-        <textarea info-rows="3" [(ngModel)]="observacao" name="observacao"></textarea>
+        <textarea rows="3" [(ngModel)]="descOrcamento" name="descOrcamento"></textarea>
       </div>
 
       <div class="actions">
         <button type="submit" class="btn btn-second">Salvar Orçamento</button>
         <a class="btn btn-primary" (click)="cancelar()">Cancelar</a>
       </div>
+
     </form>
   </div>
 </div>
