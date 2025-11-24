@@ -7,19 +7,22 @@
       <!-- DADOS DA SOLICITAÇÃO -->
       <div class="card bg">
         <h2 class="subtitle">Dados da Solicitação</h2>
-        <div class="info-row"><strong>Código:</strong><br>{{ solicitacao.id }}</div>
-        <div class="info-row"><strong>Equipamento:</strong><br>{{ solicitacao.descricao }}</div>
-        <div class="info-row"><strong>Categoria:</strong><br>{{ solicitacao.idCategoria }}</div>
-        <div class="info-row"><strong>Defeito:</strong><br>{{ solicitacao.descricaoEquipamentos }}</div>
-        <div class="info-row"><strong>Criado em:</strong><br>{{ solicitacao.dataHora }}</div>
-        <div class="info-row"><strong>Estado atual:</strong><br>{{ solicitacao.estadoChamado }}</div>
+
+        <div class="info-row"><strong>Código:</strong><br>{{ solicitacao?.id }}</div>
+        <div class="info-row"><strong>Equipamento:</strong><br>{{ solicitacao?.descricao }}</div>
+        <div class="info-row"><strong>Categoria:</strong><br>{{ solicitacao?.idCategoria }}</div>
+        <div class="info-row"><strong>Defeito:</strong><br>{{ solicitacao?.descricaoEquipamentos }}</div>
+        <div class="info-row"><strong>Criado em:</strong><br>{{ solicitacao?.dataHora }}</div>
+        <div class="info-row"><strong>Estado atual:</strong><br>{{ solicitacao?.estadoChamado }}</div>
       </div>
 
+      <!-- DADOS DO CLIENTE -->
       <div class="card bg">
         <h2 class="subtitle">Dados do Cliente</h2>
-        <div class="info-row"><strong>Nome:</strong><br>{{ solicitacao.usuario.nome }}</div>
-        <div class="info-row"><strong>Código:</strong><br>{{ solicitacao.usuario.id }}</div>
-        <div class="info-row"><strong>Email:</strong><br>{{ solicitacao.usuario.email }}</div>
+
+        <div class="info-row"><strong>Nome:</strong><br>{{ solicitacao?.usuario?.nome }}</div>
+        <div class="info-row"><strong>Código:</strong><br>{{ solicitacao?.usuario?.id }}</div>
+        <div class="info-row"><strong>Email:</strong><br>{{ solicitacao?.usuario?.email }}</div>
       </div>
 
     </div>
@@ -40,7 +43,11 @@
 
       <div class="form-input-group">
         <label>Observação (opcional)</label>
-        <textarea rows="3" [(ngModel)]="descOrcamento" name="descOrcamento"></textarea>
+        <textarea 
+          rows="3" 
+          [(ngModel)]="descOrcamento" 
+          name="descOrcamento">
+        </textarea>
       </div>
 
       <div class="actions">
